@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BengkelPro - Manajemen Operasional Bengkel</title>
+    <meta name="description" content="Aplikasi manajemen operasional bengkel sederhana, modern, dan andal berbasis online tanpa login dengan kasir, stok, laporan, dan nota." />
+    <meta property="og:title" content="BengkelPro - Manajemen Operasional Bengkel" />
+    <meta property="og:description" content="Aplikasi manajemen operasional bengkel sederhana, modern, dan andal berbasis online tanpa login dengan kasir, stok, laporan, dan nota." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BengkelPro" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script>
+      (function() {
+        var origErr = console.error;
+        console.error = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            var arg = arguments[i];
+            if (arg && (typeof arg === 'string' || arg.message) && (String(arg).includes('WebSocket') || (arg.message && arg.message.includes('WebSocket')))) {
+              return;
+            }
+          }
+          return origErr.apply(console, arguments);
+        };
+        window.addEventListener('error', function (event) {
+          if (event && event.message && event.message.includes('WebSocket')) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function (event) {
+          if (event && event.reason && (event.reason.message || String(event.reason)).includes('WebSocket')) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

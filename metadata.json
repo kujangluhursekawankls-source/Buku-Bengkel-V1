@@ -1,0 +1,6 @@
+{
+  "name": "BengkelPro",
+  "description": "Aplikasi manajemen operasional bengkel sederhana, modern, dan andal berbasis online tanpa login dengan kasir, stok, laporan, dan nota.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E40AF" />
+      <stop offset="40%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0f172a" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background with smooth rounded corner -->
+  <rect width="512" height="512" rx="128" fill="url(#primaryGradient)" />
+  
+  <!-- Subtle inner ambient stroke -->
+  <rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4" />
+
+  <!-- Stylized Workshop Gear & Wrench Symbol -->
+  <g filter="url(#shadow)" transform="translate(256, 256)">
+    <!-- Gear outer ring -->
+    <circle r="120" fill="none" stroke="url(#accentGradient)" stroke-width="16" stroke-opacity="0.35" stroke-dasharray="14 10" />
+    
+    <!-- Central Hexagonal Nut / Gear Hub -->
+    <polygon points="0,-85 73.6,-42.5 73.6,42.5 0,85 -73.6,42.5 -73.6,-42.5" fill="#ffffff" fill-opacity="0.95" />
+    <circle r="44" fill="url(#primaryGradient)" />
+
+    <!-- Modern Angled Precision Wrench Crossing -->
+    <path d="M-90,-110 L-60,-140 C-45,-125 -30,-130 -15,-145 C0,-160 -5,-175 10,-190 C30,-170 15,-130 -10,-105 L-35,-80 L80,35 C95,50 95,75 80,90 C65,105 40,105 25,90 L-90,-25 Z" fill="#ffffff" />
+    
+    <!-- Speed/Spark accent pip -->
+    <circle cx="110" cy="-70" r="14" fill="#34D399" />
+    <circle cx="130" cy="-45" r="7" fill="#67E8F9" />
+  </g>
+</svg>
