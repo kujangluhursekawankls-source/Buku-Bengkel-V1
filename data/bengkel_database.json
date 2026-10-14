@@ -5,8 +5,8 @@
     "address": "Kp. Nagrak RT 05/03 Desa Nagrak Kec. Gunung Putri Bogor",
     "phone": "628179015181",
     "boss_whatsapp": "628179015181",
-    "logo_url": "/uploads/img_1791869387138_qa9jlc.jpeg",
-    "banner_url": "/uploads/img_1791869393043_h2ycai.jpeg",
+    "logo_url": "",
+    "banner_url": "",
     "stamp_config": {
       "enabled": false,
       "image_url": "",
@@ -17,9 +17,9 @@
       "offset_y": 0
     },
     "receipt_footer": "Terima kasih atas kunjungan Anda!",
-    "supabase_url": "",
-    "supabase_anon_key": "",
-    "updated_at": "2026-10-13T05:37:09.460Z"
+    "supabase_url": "https://gbwcojnqdzystsugxvfj.supabase.co",
+    "supabase_anon_key": "sb_publishable_Dfb4zLbGX_LwPFZZzDK4mA_KV1kN-QV",
+    "updated_at": "2026-10-14T05:20:00.000Z"
   },
   "items": [
     {
@@ -33,7 +33,7 @@
       "stock": 45,
       "min_stock": 5,
       "created_at": "2026-10-13T05:20:57.271Z",
-      "updated_at": "2026-10-13T05:42:12.207Z"
+      "updated_at": "2026-10-14T04:27:05.516Z"
     },
     {
       "id": "item_1791868875932_7ti5",
@@ -46,7 +46,7 @@
       "stock": 86,
       "min_stock": 5,
       "created_at": "2026-10-13T05:21:15.932Z",
-      "updated_at": "2026-10-13T05:42:12.207Z"
+      "updated_at": "2026-10-14T04:27:05.516Z"
     },
     {
       "id": "item_1791870050594_u2er",
@@ -59,10 +59,88 @@
       "stock": 8,
       "min_stock": 5,
       "created_at": "2026-10-13T05:40:50.594Z",
-      "updated_at": "2026-10-13T05:42:12.207Z"
+      "updated_at": "2026-10-14T04:27:05.516Z"
     }
   ],
   "stock_movements": [
+    {
+      "id": "mov_1791952025516_9wdg",
+      "item_id": "item_1791870050594_u2er",
+      "item_code": "BRG-003",
+      "item_name": "spakboard supra",
+      "type": "RETURN_CANCEL",
+      "change_qty": 1,
+      "stock_before": 7,
+      "stock_after": 8,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Pengembalian stok pembatalan transaksi TRX-20261014-0001: Tidak Jadi",
+      "created_at": "2026-10-14T04:27:05.516Z"
+    },
+    {
+      "id": "mov_1791952025516_wzix",
+      "item_id": "item_1791868875932_7ti5",
+      "item_code": "BRG-002",
+      "item_name": "Bantu Uk. 10",
+      "type": "RETURN_CANCEL",
+      "change_qty": 1,
+      "stock_before": 85,
+      "stock_after": 86,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Pengembalian stok pembatalan transaksi TRX-20261014-0001: Tidak Jadi",
+      "created_at": "2026-10-14T04:27:05.516Z"
+    },
+    {
+      "id": "mov_1791952025516_10f8",
+      "item_id": "item_1791868857271_png7",
+      "item_code": "BRG-001",
+      "item_name": "Oli Federal",
+      "type": "RETURN_CANCEL",
+      "change_qty": 1,
+      "stock_before": 44,
+      "stock_after": 45,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Pengembalian stok pembatalan transaksi TRX-20261014-0001: Tidak Jadi",
+      "created_at": "2026-10-14T04:27:05.516Z"
+    },
+    {
+      "id": "mov_1791951225614_vzfu",
+      "item_id": "item_1791870050594_u2er",
+      "item_code": "BRG-003",
+      "item_name": "spakboard supra",
+      "type": "OUT_SALE",
+      "change_qty": -1,
+      "stock_before": 8,
+      "stock_after": 7,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Penjualan Kasir Nota TRX-20261014-0001",
+      "created_at": "2026-10-14T04:13:45.614Z"
+    },
+    {
+      "id": "mov_1791951225614_htzb",
+      "item_id": "item_1791868875932_7ti5",
+      "item_code": "BRG-002",
+      "item_name": "Bantu Uk. 10",
+      "type": "OUT_SALE",
+      "change_qty": -1,
+      "stock_before": 86,
+      "stock_after": 85,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Penjualan Kasir Nota TRX-20261014-0001",
+      "created_at": "2026-10-14T04:13:45.614Z"
+    },
+    {
+      "id": "mov_1791951225614_1nyu",
+      "item_id": "item_1791868857271_png7",
+      "item_code": "BRG-001",
+      "item_name": "Oli Federal",
+      "type": "OUT_SALE",
+      "change_qty": -1,
+      "stock_before": 45,
+      "stock_after": 44,
+      "reference_no": "TRX-20261014-0001",
+      "reason": "Penjualan Kasir Nota TRX-20261014-0001",
+      "created_at": "2026-10-14T04:13:45.614Z"
+    },
     {
       "id": "mov_1791870132207_dfxj",
       "item_id": "item_1791870050594_u2er",
@@ -249,6 +327,64 @@
     }
   ],
   "transactions": [
+    {
+      "id": "trx_1791951225614_vhlj",
+      "invoice_no": "TRX-20261014-0001",
+      "date": "2026-10-14T04:13:45.614Z",
+      "items": [
+        {
+          "item_id": "item_1791868857271_png7",
+          "item_code": "BRG-001",
+          "item_name": "Oli Federal",
+          "unit": "Botol",
+          "cost_price": 50000,
+          "sell_price": 60000,
+          "qty": 1,
+          "subtotal": 60000
+        },
+        {
+          "item_id": "item_1791868875932_7ti5",
+          "item_code": "BRG-002",
+          "item_name": "Bantu Uk. 10",
+          "unit": "Pcs",
+          "cost_price": 5000,
+          "sell_price": 6000,
+          "qty": 1,
+          "subtotal": 6000
+        },
+        {
+          "item_id": "item_1791870050594_u2er",
+          "item_code": "BRG-003",
+          "item_name": "spakboard supra",
+          "unit": "Unit",
+          "cost_price": 50000,
+          "sell_price": 75000,
+          "qty": 1,
+          "subtotal": 75000
+        }
+      ],
+      "services": [
+        {
+          "service_id": "srv_1791868726545_2vjj",
+          "name": "Service",
+          "price": 45000,
+          "qty": 1,
+          "subtotal": 45000
+        }
+      ],
+      "items_subtotal": 141000,
+      "services_subtotal": 45000,
+      "subtotal": 186000,
+      "discount": 0,
+      "total_amount": 186000,
+      "payment_method": "TUNAI",
+      "amount_received": 200000,
+      "change_amount": 14000,
+      "status": "CANCELLED",
+      "created_at": "2026-10-14T04:13:45.614Z",
+      "cancellation_reason": "Tidak Jadi",
+      "cancelled_at": "2026-10-14T04:27:05.516Z"
+    },
     {
       "id": "trx_1791870132207_9s73",
       "invoice_no": "TRX-20261013-0004",
@@ -457,6 +593,18 @@
   ],
   "expenses": [],
   "activity_logs": [
+    {
+      "id": "log_1791952025517_oux1j",
+      "timestamp": "2026-10-14T04:27:05.517Z",
+      "action": "BATAL_TRANSAKSI",
+      "details": "Transaksi dibatalkan: TRX-20261014-0001. Alasan: Tidak Jadi"
+    },
+    {
+      "id": "log_1791951225621_zjp2u",
+      "timestamp": "2026-10-14T04:13:45.622Z",
+      "action": "TRANSAKSI_SELESAI",
+      "details": "Transaksi berhasil dibuat: TRX-20261014-0001 sebesar Rp 186.000"
+    },
     {
       "id": "log_1791870074858_jxgmm",
       "timestamp": "2026-10-13T05:41:14.858Z",
