@@ -435,6 +435,32 @@ class BengkelDatabase {
     return item;
   }
 
+  public deleteItem(id: string): { success: boolean; message: string } {
+    const idx = this.data.items.findIndex(i => i.id === id);
+    if (idx === -1) throw new Error('Barang tidak ditemukan');
+    const target = this.data.items[idx];
+
+    // Hapus barang dari daftar items
+    this.data.items.splice(idx, 1);
+    this.saveDatabase();
+
+    // Jika Supabase terhubung, sinkronkan penghapusan
+    if (this.supabase) {
+      this.supabase.from('items').delete().eq('id', id).then(
+        ({ error }) => {
+          if (error) console.error('Gagal menghapus item dari Supabase:', error.message);
+        },
+        (err: any) => console.error('Supabase delete item err:', err)
+      );
+    }
+
+    this.logActivity('HAPUS_BARANG', `Barang dihapus dari katalog: [${target.code}] ${target.name}`);
+    return {
+      success: true,
+      message: `Barang "${target.name}" (${target.code}) berhasil dihapus.`,
+    };
+  }
+
   public adjustStock(payload: {
     item_id: string;
     type: 'IN_PURCHASE' | 'OUT_SALE' | 'ADJUSTMENT';

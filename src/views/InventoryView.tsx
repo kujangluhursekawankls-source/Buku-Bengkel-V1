@@ -13,6 +13,7 @@ import {
   X,
   RefreshCw,
   SlidersHorizontal,
+  Trash2,
 } from 'lucide-react';
 import { api } from '../utils/api.js';
 import type { Item, StockMovement } from '../types/bengkel.js';
@@ -41,6 +42,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [movementsLoading, setMovementsLoading] = useState(false);
   const [activeMovementItem, setActiveMovementItem] = useState<Item | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form states for Add / Edit
   const [formData, setFormData] = useState({
@@ -230,6 +233,25 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     }
   };
 
+  // Delete Item handler
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      setDeleting(true);
+      await api.deleteItem(itemToDelete.id);
+      const deletedName = itemToDelete.name;
+      setItemToDelete(null);
+      if (editItem?.id === itemToDelete.id) {
+        setEditItem(null);
+      }
+      await loadItems();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus barang');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* View Header */}
@@ -396,6 +418,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                             title="Riwayat Stok"
                           >
                             <History className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setItemToDelete(item)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                            title="Hapus Barang dari Stok"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -652,21 +681,35 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 * Catatan: Jumlah stok fisik diubah melalui menu &apos;Ubah Stok&apos; atau &apos;Stok Masuk&apos; agar pergerakan stok tercatat ke riwayat audit.
               </p>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setEditItem(null)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50"
+                  onClick={() => {
+                    const target = editItem;
+                    setEditItem(null);
+                    setItemToDelete(target);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 font-semibold text-rose-700 hover:bg-rose-100 transition text-xs"
                 >
-                  Batal
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Hapus Barang</span>
                 </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="rounded-xl bg-teal-600 px-4 py-2 font-bold text-white hover:bg-teal-700 disabled:opacity-50"
-                >
-                  {submitting ? 'Menyimpan...' : 'Perbarui Data'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditItem(null)}
+                    className="rounded-xl border border-slate-200 px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="rounded-xl bg-teal-600 px-4 py-2 font-bold text-white hover:bg-teal-700 disabled:opacity-50"
+                  >
+                    {submitting ? 'Menyimpan...' : 'Perbarui Data'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -907,6 +950,66 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 className="rounded-xl bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: KONFIRMASI HAPUS BARANG */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl">
+            <div className="flex items-center gap-3 text-rose-600 mb-3">
+              <div className="p-2.5 rounded-xl bg-rose-100">
+                <Trash2 className="w-6 h-6 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Hapus Barang dari Stok?</h3>
+                <p className="text-xs text-slate-500">Tindakan ini akan menghapus barang dari katalog</p>
+              </div>
+            </div>
+
+            <div className="my-4 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-700 space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Kode Barang:</span>
+                <span className="font-mono font-bold">{itemToDelete.code}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Nama Barang:</span>
+                <span className="font-bold text-slate-900">{itemToDelete.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Kategori:</span>
+                <span>{itemToDelete.category}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Sisa Stok Sekarang:</span>
+                <span className="font-bold text-teal-700">{itemToDelete.stock} {itemToDelete.unit}</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 mb-5">
+              Apakah Anda yakin ingin menghapus <strong>{itemToDelete.name}</strong> dari daftar stok barang?
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setItemToDelete(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleConfirmDelete}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 shadow-sm transition active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{deleting ? 'Menghapus...' : 'Ya, Hapus Sekarang'}</span>
               </button>
             </div>
           </div>

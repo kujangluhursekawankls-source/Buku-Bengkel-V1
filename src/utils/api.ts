@@ -88,6 +88,13 @@ export const api = {
     return handleResponse(res);
   },
 
+  deleteItem: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await fetch(`/api/items/${id}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(res);
+  },
+
   adjustStock: async (
     id: string,
     data: {

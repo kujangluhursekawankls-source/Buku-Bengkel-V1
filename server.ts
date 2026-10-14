@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
@@ -40,6 +41,18 @@ app.use('/api/uploads', express.static(UPLOAD_DIR));
 
 // URL normalizer for serverless / proxy environments (e.g. Vercel)
 app.use((req: Request, _res: Response, next) => {
+  const headerPath = (
+    req.headers['x-matched-path'] ||
+    req.headers['x-vercel-sc-path'] ||
+    req.headers['x-original-url'] ||
+    req.headers['x-forwarded-uri'] ||
+    req.headers['x-rewrite-url']
+  ) as string | undefined;
+
+  if (headerPath && headerPath.startsWith('/api') && (req.url === '/api' || req.url === '/api/')) {
+    req.url = headerPath;
+  }
+
   const urlPath = req.url.split('?')[0];
   if (!urlPath.startsWith('/api') && !urlPath.startsWith('/uploads')) {
     const isApiRoute = [
@@ -133,6 +146,15 @@ app.put('/api/items/:id', (req: Request, res: Response) => {
     res.json(updated);
   } catch (err: any) {
     res.status(400).json({ error: err.message || 'Gagal mengubah barang' });
+  }
+});
+
+app.delete('/api/items/:id', (req: Request, res: Response) => {
+  try {
+    const result = db.deleteItem(req.params.id);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Gagal menghapus barang' });
   }
 });
 
@@ -456,7 +478,10 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
+const isVercelEnv = Boolean(process.env.VERCEL || process.env.NOW_REGION || process.env.VERCEL_ENV);
+const isDirectExecution = !process.argv[1] || process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js') || process.argv[1].includes('tsx');
+
+if (!isVercelEnv && isDirectExecution) {
   startServer().catch(err => {
     console.error('Gagal menjalankan server:', err);
     process.exit(1);
