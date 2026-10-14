@@ -22,6 +22,10 @@ import {
   RotateCcw,
   Minus,
   Plus,
+  Smartphone,
+  Laptop,
+  QrCode,
+  Sparkles,
 } from 'lucide-react';
 import { api } from '../utils/api.js';
 import type { WorkshopProfile, ActivityLog, StampConfig } from '../types/bengkel.js';
@@ -43,7 +47,9 @@ const defaultStampConfig: StampConfig = {
 };
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUpdated }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'stamp' | 'whatsapp' | 'database' | 'backup' | 'logs'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'stamp' | 'whatsapp' | 'database' | 'backup' | 'logs' | 'install'>('profile');
+  const [copiedInstallLink, setCopiedInstallLink] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState<'android' | 'ios' | 'pc'>('android');
 
   // Profile Form state
   const [formData, setFormData] = useState<WorkshopProfile>({
@@ -275,7 +281,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
       </div>
 
       {/* Settings Navigation Tabs (Presisi Android: Grid tombol nyaman tanpa perlu digeser/slide) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
@@ -347,6 +353,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
         >
           <History className="w-4 h-4" />
           <span>Log Audit</span>
+        </button>
+
+        {/* Tab Pasang di HP / PWA */}
+        <button
+          onClick={() => setActiveTab('install')}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
+            activeTab === 'install'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+          }`}
+        >
+          <Smartphone className="w-4 h-4 text-emerald-600" />
+          <span>Pasang di HP</span>
         </button>
       </div>
 
@@ -1207,6 +1226,303 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
           </div>
         </div>
       )}
+
+      {/* TAB 7: PASANG DI HP / INSTALASI APLIKASI */}
+      {activeTab === 'install' && (() => {
+        const getShareUrl = () => {
+          if (typeof window !== 'undefined') {
+            const href = window.location.href;
+            if (href.includes('ais-dev-')) {
+              return href.replace('ais-dev-', 'ais-pre-').split('?')[0];
+            }
+            return window.location.origin;
+          }
+          return 'https://ais-pre-icjbiw4hcgkjiex2ftrvzo-339488771069.asia-southeast1.run.app';
+        };
+
+        const shareUrl = getShareUrl();
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(shareUrl)}`;
+
+        const copyLink = async () => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(shareUrl);
+            } else {
+              const el = document.createElement('input');
+              el.value = shareUrl;
+              document.body.appendChild(el);
+              el.select();
+              document.execCommand('copy');
+              document.body.removeChild(el);
+            }
+            setCopiedInstallLink(true);
+            setTimeout(() => setCopiedInstallLink(false), 2500);
+          } catch (e) {
+            console.error('Gagal salin link:', e);
+          }
+        };
+
+        const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          `Halo, silakan buka aplikasi manajemen bengkel kita (${formData.name || 'BengkelPro'}) melalui link ini:\n${shareUrl}\n\nSetelah dibuka di Chrome / Safari, pilih menu 'Tambahkan ke Layar Utama' agar terpasang seperti aplikasi biasa!`
+        )}`;
+
+        return (
+          <div className="space-y-5">
+            {/* Hero Card */}
+            <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-700 via-teal-800 to-slate-900 text-white p-5 sm:p-6 shadow-md relative overflow-hidden">
+              <div className="max-w-2xl relative z-10 space-y-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/30 text-teal-200 border border-teal-400/30 text-[11px] font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>PWA (Progressive Web App) Terpasang & Siap Pakai</span>
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  Cara Memasang Aplikasi di HP Kasir & Karyawan
+                </h3>
+                <p className="text-xs sm:text-sm text-teal-100/90 leading-relaxed">
+                  Aplikasi ini dirancang sebagai <strong>Progressive Web App (PWA)</strong>. Artinya, tidak perlu download lewat Google Play Store atau file APK rumit. Cukup buka link di browser HP, lalu pilih <em>"Tambahkan ke Layar Utama"</em>.
+                </p>
+              </div>
+            </div>
+
+            {/* QR Code and Share Section */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              {/* QR Code Display */}
+              <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                  <img
+                    src={qrUrl}
+                    alt="QR Code Aplikasi Bengkel"
+                    className="w-40 h-40 object-contain rounded-lg"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="text-xs font-bold text-slate-800 mt-3 text-center">
+                  Scan Langsung Pakai Kamera HP
+                </p>
+                <p className="text-[11px] text-slate-500 text-center mt-0.5">
+                  Arahkan kamera smartphone ke kode di atas
+                </p>
+              </div>
+
+              {/* Share & Copy Link Actions */}
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 mb-1">
+                    Link Akses Aplikasi (Bisa Dibagikan ke Karyawan)
+                  </h4>
+                  <p className="text-xs text-slate-600">
+                    Semua perangkat yang membuka link ini akan otomatis terhubung ke database online Supabase yang sama:
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareUrl}
+                    className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-800 font-mono select-all truncate focus:outline-none"
+                  />
+                  <button
+                    onClick={copyLink}
+                    className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs ${
+                      copiedInstallLink
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-teal-700 text-white hover:bg-teal-800'
+                    }`}
+                  >
+                    {copiedInstallLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <span>{copiedInstallLink ? 'Tersalin!' : 'Salin Link'}</span>
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <a
+                    href={waShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Kirim Link via WhatsApp</span>
+                  </a>
+
+                  <a
+                    href={shareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition"
+                  >
+                    <span>Buka di Tab Baru</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Instructions */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Petunjuk Pemasangan Langkah demi Langkah
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Pilih jenis perangkat yang digunakan oleh pengguna atau karyawan Anda:
+                  </p>
+                </div>
+
+                {/* Tabs for OS */}
+                <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    onClick={() => setInstallPlatform('android')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      installPlatform === 'android'
+                        ? 'bg-white text-emerald-800 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Android
+                  </button>
+                  <button
+                    onClick={() => setInstallPlatform('ios')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      installPlatform === 'ios'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    iPhone (iOS)
+                  </button>
+                  <button
+                    onClick={() => setInstallPlatform('pc')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      installPlatform === 'pc'
+                        ? 'bg-white text-blue-800 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Laptop / PC
+                  </button>
+                </div>
+              </div>
+
+              {/* Android Card */}
+              {installPlatform === 'android' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">1</span>
+                    <h5 className="font-bold text-emerald-950">Buka di Google Chrome</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Buka link aplikasi menggunakan browser <strong>Google Chrome</strong> di smartphone Android Anda.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">2</span>
+                    <h5 className="font-bold text-emerald-950">Buka Menu Titik Tiga</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Ketuk tombol <strong>Titik Tiga (⋮)</strong> yang ada di pojok kanan atas browser Google Chrome.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">3</span>
+                    <h5 className="font-bold text-emerald-950">Tambahkan ke Layar Utama</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Cari dan pilih opsi <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Install Aplikasi"</strong>.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">4</span>
+                    <h5 className="font-bold text-emerald-950">Selesai & Buka App</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Ketuk <strong>Install</strong>. Ikon <strong>BengkelPro</strong> akan langsung muncul di menu HP seperti aplikasi Play Store.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* iPhone Card */}
+              {installPlatform === 'ios' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs">1</span>
+                    <h5 className="font-bold text-slate-950">Buka di Browser Safari</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Pastikan membuka link langsung di browser bawaan <strong>Safari</strong> pada iPhone atau iPad Anda.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs">2</span>
+                    <h5 className="font-bold text-slate-950">Ketuk Tombol Share</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Ketuk ikon <strong>Bagikan / Share</strong> (ikon kotak dengan tanda panah ke atas) di bagian bawah.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs">3</span>
+                    <h5 className="font-bold text-slate-950">Add to Home Screen</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Gulir daftar menu ke bawah lalu ketuk <strong>"Add to Home Screen" (Tambahkan ke Layar Utama)</strong>.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs">4</span>
+                    <h5 className="font-bold text-slate-950">Ketuk Tambah (Add)</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Tekan tombol <strong>"Tambah"</strong> di pojok kanan atas. Aplikasi akan otomatis ada di Home Screen!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* PC / Laptop Card */}
+              {installPlatform === 'pc' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">1</span>
+                    <h5 className="font-bold text-blue-950">Buka Chrome atau Edge</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Gunakan Google Chrome atau Microsoft Edge di komputer/laptop kasir bengkel Anda.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">2</span>
+                    <h5 className="font-bold text-blue-950">Ikon Install di Address Bar</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Perhatikan di ujung kanan baris alamat browser, klik ikon monitor dengan panah bawah (Install).
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">3</span>
+                    <h5 className="font-bold text-blue-950">Atau Menu Titik Tiga</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Bisa juga klik menu titik tiga (⋮) di kanan atas ➡️ pilih <strong>"Install BengkelPro..."</strong>.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">4</span>
+                    <h5 className="font-bold text-blue-950">Aplikasi Mandiri</h5>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Aplikasi akan terbuka mandiri di layarnya sendiri seperti program desktop tanpa bilah browser.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cloud Sync Information */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-bold text-slate-900 block">Sinkronisasi Otomatis Antar Perangkat</span>
+                <p>
+                  Karena database sudah terhubung ke <strong>Supabase</strong>, seluruh perubahan data (seperti stok masuk, kasir cetak nota, servis motor) yang diinput oleh karyawan di HP mereka akan langsung masuk dan terlihat serentak di HP bos atau komputer kasir.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
+

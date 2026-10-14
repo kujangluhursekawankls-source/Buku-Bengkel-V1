@@ -212,7 +212,7 @@ export default function App() {
             <Coffee className="w-3.5 h-3.5 text-white" />
             <span className="text-[11px] font-bold">Bagi Kopi</span>
           </button>
-          <PWAInstallButton />
+          <PWAInstallButton compact />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -252,6 +252,11 @@ export default function App() {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Pasang di Layar Utama HP:</span>
+              <PWAInstallButton />
             </div>
           </div>
         </div>
