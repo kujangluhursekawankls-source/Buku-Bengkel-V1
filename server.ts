@@ -19,11 +19,34 @@ app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Ensure upload directory exists and serve statically
-const UPLOAD_DIR = path.resolve(process.cwd(), 'data', 'uploads');
+const isVercel = Boolean(process.env.VERCEL);
+const UPLOAD_DIR = isVercel ? path.resolve('/tmp', 'uploads') : path.resolve(process.cwd(), 'data', 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  } catch (e) {
+    console.warn('Gagal membuat direktori upload:', e);
+  }
 }
 app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/api/uploads', express.static(UPLOAD_DIR));
+
+// URL normalizer for serverless / proxy environments (e.g. Vercel)
+app.use((req: Request, _res: Response, next) => {
+  const urlPath = req.url.split('?')[0];
+  if (!urlPath.startsWith('/api') && !urlPath.startsWith('/uploads')) {
+    const isApiRoute = [
+      '/profile', '/upload', '/items', '/movements', '/services',
+      '/transactions', '/expenses', '/dashboard', '/reports',
+      '/whatsapp', '/backup', '/database', '/logs'
+    ].some(prefix => urlPath === prefix || urlPath.startsWith(prefix + '/'));
+
+    if (isApiRoute) {
+      req.url = '/api' + req.url;
+    }
+  }
+  next();
+});
 
 // ----------------------------------------------------
 // API ROUTES
@@ -426,7 +449,11 @@ async function startServer() {
   });
 }
 
-startServer().catch(err => {
-  console.error('Gagal menjalankan server:', err);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  startServer().catch(err => {
+    console.error('Gagal menjalankan server:', err);
+    process.exit(1);
+  });
+}
+
+export default app;

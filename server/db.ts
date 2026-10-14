@@ -13,8 +13,10 @@ import type {
   DashboardStats,
   FinancialReportSummary
 } from '../src/types/bengkel.js';
+import initialSeedData from '../data/bengkel_database.json';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
+const isVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = isVercel ? '/tmp/data' : path.resolve(process.cwd(), 'data');
 const DB_FILE = path.resolve(DATA_DIR, 'bengkel_database.json');
 
 interface DatabaseSchema {
@@ -66,6 +68,16 @@ class BengkelDatabase {
 
   constructor() {
     this.ensureDataDir();
+    if (isVercel && !fs.existsSync(DB_FILE)) {
+      try {
+        const seedFile = path.resolve(process.cwd(), 'data', 'bengkel_database.json');
+        if (fs.existsSync(seedFile)) {
+          fs.copyFileSync(seedFile, DB_FILE);
+        }
+      } catch (err) {
+        console.warn('Gagal menyalin seed database ke /tmp:', err);
+      }
+    }
     this.data = this.loadDatabase();
     this.initSupabaseClient();
   }
@@ -92,8 +104,29 @@ class BengkelDatabase {
         };
       }
     } catch (err) {
-      console.error('Gagal membaca bengkel_database.json, menggunakan inisialisasi kosong:', err);
+      console.error('Gagal membaca DB_FILE, mencoba fallback ke seed data:', err);
     }
+
+    // Fallback to embedded seed data if DB_FILE is not yet created
+    if (initialSeedData) {
+      const parsed = initialSeedData as any;
+      const initialDb: DatabaseSchema = {
+        profile: { ...defaultProfile, ...(parsed.profile || {}) },
+        items: Array.isArray(parsed.items) ? parsed.items : [],
+        stock_movements: Array.isArray(parsed.stock_movements) ? parsed.stock_movements : [],
+        services: Array.isArray(parsed.services) ? parsed.services : [],
+        transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
+        expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
+        activity_logs: Array.isArray(parsed.activity_logs) ? parsed.activity_logs : [],
+      };
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
+      } catch (writeErr) {
+        console.warn('Gagal menulis initial DB_FILE ke disk:', writeErr);
+      }
+      return initialDb;
+    }
+
     return {
       profile: { ...defaultProfile },
       items: [],
