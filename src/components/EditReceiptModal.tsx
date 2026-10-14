@@ -16,7 +16,8 @@ import { formatRupiah } from '../utils/formatters.js';
 interface EditReceiptModalProps {
   transaction: Transaction;
   onClose: () => void;
-  onSaved: (updatedTrx: Transaction) => void;
+  onSaved?: (updatedTrx: Transaction) => void;
+  onSuccess?: (updatedTrx: Transaction) => void;
 }
 
 interface EditCartItem {
@@ -39,6 +40,7 @@ export const EditReceiptModal: React.FC<EditReceiptModalProps> = ({
   transaction,
   onClose,
   onSaved,
+  onSuccess,
 }) => {
   const [customerName, setCustomerName] = useState(transaction.customer_name || '');
   const [customerPhone, setCustomerPhone] = useState(transaction.customer_phone || '');
@@ -88,8 +90,8 @@ export const EditReceiptModal: React.FC<EditReceiptModalProps> = ({
         api.getItems(),
         api.getServices(),
       ]);
-      setCatalogItems(invRes.items || []);
-      setCatalogServices((srvRes.services || []).filter(s => s.is_active !== false));
+      setCatalogItems(Array.isArray(invRes) ? invRes : []);
+      setCatalogServices(Array.isArray(srvRes) ? srvRes.filter((s: ServiceItem) => s.is_active !== false) : []);
     } catch (err: any) {
       console.error('Gagal memuat katalog:', err);
     }
@@ -212,7 +214,8 @@ export const EditReceiptModal: React.FC<EditReceiptModalProps> = ({
       };
 
       const updated = await api.updateTransaction(transaction.id, payload);
-      onSaved(updated);
+      if (onSuccess) onSuccess(updated);
+      if (onSaved) onSaved(updated);
     } catch (err: any) {
       setError(err.message || 'Gagal menyimpan perubahan nota');
     } finally {

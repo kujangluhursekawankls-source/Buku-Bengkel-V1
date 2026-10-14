@@ -20,6 +20,8 @@ import {
   History,
   Stamp,
   RotateCcw,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import { api } from '../utils/api.js';
 import type { WorkshopProfile, ActivityLog, StampConfig } from '../types/bengkel.js';
@@ -239,14 +241,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
         </p>
       </div>
 
-      {/* Settings Navigation Tabs (Mobile-friendly horizontal scroll) */}
-      <div className="flex border-b border-slate-200 overflow-x-auto text-xs no-scrollbar">
+      {/* Settings Navigation Tabs (Presisi Android: Grid tombol nyaman tanpa perlu digeser/slide) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
         <button
           onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'profile'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -256,10 +258,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
         {/* Tab Stempel Toko */}
         <button
           onClick={() => setActiveTab('stamp')}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'stamp'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <Stamp className="w-4 h-4" />
@@ -268,46 +270,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
 
         <button
           onClick={() => setActiveTab('whatsapp')}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'whatsapp'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
-          <span>WhatsApp Atasan</span>
+          <span>WhatsApp</span>
         </button>
         <button
           onClick={() => setActiveTab('database')}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'database'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <Database className="w-4 h-4" />
-          <span>Database Online</span>
+          <span>Database</span>
         </button>
         <button
           onClick={() => setActiveTab('backup')}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'backup'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <Download className="w-4 h-4" />
-          <span>Backup & Restore</span>
+          <span>Backup</span>
         </button>
         <button
           onClick={() => {
             setActiveTab('logs');
             loadLogs();
           }}
-          className={`flex items-center gap-1.5 py-3 px-4 font-semibold border-b-2 whitespace-nowrap transition h-11 ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold transition border ${
             activeTab === 'logs'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
           <History className="w-4 h-4" />
@@ -569,28 +571,75 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
                   </div>
                 </div>
 
-                {/* Stamp Size Slider */}
-                <div className="space-y-1.5 p-3 rounded-xl border border-slate-200 bg-white">
+                {/* Stamp Size Precision Stepper (Tanpa Slide, Presisi Android) */}
+                <div className="space-y-2.5 p-3.5 rounded-xl border border-slate-200 bg-white">
                   <div className="flex justify-between items-center">
-                    <label className="font-semibold text-slate-700">Ukuran Stempel (Lebar)</label>
-                    <span className="font-mono font-bold text-teal-700">{stampConfig.size} px</span>
+                    <label className="font-semibold text-slate-700 text-xs">Ukuran Stempel (Lebar)</label>
+                    <span className="font-mono font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-lg border border-teal-200 text-xs">{stampConfig.size} px</span>
                   </div>
-                  <input
-                    type="range"
-                    min="45"
-                    max="150"
-                    step="5"
-                    value={stampConfig.size}
-                    onChange={e => setFormData({
-                      ...formData,
-                      stamp_config: { ...stampConfig, size: Number(e.target.value) }
-                    })}
-                    className="w-full accent-teal-600 cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400">
-                    <span>Kecil (45px)</span>
-                    <span>Standar (85px)</span>
-                    <span>Besar (150px)</span>
+
+                  {/* Stepper buttons and direct number input */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        stamp_config: { ...stampConfig, size: Math.max(45, (stampConfig.size || 85) - 5) }
+                      })}
+                      className="h-10 w-11 rounded-xl border border-slate-300 bg-slate-50 flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      aria-label="Kurangi ukuran"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="number"
+                      min="45"
+                      max="180"
+                      step="5"
+                      value={stampConfig.size}
+                      onChange={e => setFormData({
+                        ...formData,
+                        stamp_config: { ...stampConfig, size: Math.max(30, Math.min(250, Number(e.target.value) || 85)) }
+                      })}
+                      className="flex-1 h-10 text-center font-mono font-bold text-slate-800 rounded-xl border border-slate-300 focus:border-teal-500 focus:outline-hidden text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        stamp_config: { ...stampConfig, size: Math.min(180, (stampConfig.size || 85) + 5) }
+                      })}
+                      className="h-10 w-11 rounded-xl border border-slate-300 bg-slate-50 flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      aria-label="Tambah ukuran"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Quick Preset Buttons */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[
+                      { label: 'Kecil', size: 60 },
+                      { label: 'Standar', size: 85 },
+                      { label: 'Besar', size: 110 },
+                      { label: 'Jumbo', size: 140 },
+                    ].map(preset => (
+                      <button
+                        key={preset.size}
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, size: preset.size }
+                        })}
+                        className={`h-8 rounded-lg text-[11px] font-semibold transition border ${
+                          stampConfig.size === preset.size
+                            ? 'bg-teal-50 border-teal-500 text-teal-800 font-bold'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -664,42 +713,94 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
                   </div>
                 </div>
 
-                {/* Fine-Tuning Coordinates (Offset X / Y) */}
-                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl border border-slate-200 bg-white">
+                {/* Fine-Tuning Coordinates (Offset X / Y - Presisi Android Tanpa Slide) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl border border-slate-200 bg-white">
                   <div>
-                    <label className="font-semibold text-slate-700 block mb-1">
-                      Geser Kiri/Kanan: <span className="font-mono text-teal-700">{stampConfig.offset_x || 0}px</span>
-                    </label>
-                    <input
-                      type="range"
-                      min="-50"
-                      max="50"
-                      step="2"
-                      value={stampConfig.offset_x || 0}
-                      onChange={e => setFormData({
-                        ...formData,
-                        stamp_config: { ...stampConfig, offset_x: Number(e.target.value) }
-                      })}
-                      className="w-full accent-teal-600 cursor-pointer"
-                    />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="font-semibold text-slate-700 text-xs">
+                        Geser Kiri/Kanan
+                      </label>
+                      <span className="font-mono text-teal-700 font-bold text-xs bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                        {stampConfig.offset_x || 0}px
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_x: (stampConfig.offset_x || 0) - 2 }
+                        })}
+                        className="flex-1 h-9 rounded-lg border border-slate-300 bg-slate-50 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      >
+                        ◀ Kiri (-2)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_x: 0 }
+                        })}
+                        className="px-2.5 h-9 rounded-lg border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:bg-slate-50"
+                        title="Reset ke tengah"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_x: (stampConfig.offset_x || 0) + 2 }
+                        })}
+                        className="flex-1 h-9 rounded-lg border border-slate-300 bg-slate-50 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      >
+                        Kanan (+2) ▶
+                      </button>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-700 block mb-1">
-                      Geser Atas/Bawah: <span className="font-mono text-teal-700">{stampConfig.offset_y || 0}px</span>
-                    </label>
-                    <input
-                      type="range"
-                      min="-50"
-                      max="50"
-                      step="2"
-                      value={stampConfig.offset_y || 0}
-                      onChange={e => setFormData({
-                        ...formData,
-                        stamp_config: { ...stampConfig, offset_y: Number(e.target.value) }
-                      })}
-                      className="w-full accent-teal-600 cursor-pointer"
-                    />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="font-semibold text-slate-700 text-xs">
+                        Geser Atas/Bawah
+                      </label>
+                      <span className="font-mono text-teal-700 font-bold text-xs bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                        {stampConfig.offset_y || 0}px
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_y: (stampConfig.offset_y || 0) - 2 }
+                        })}
+                        className="flex-1 h-9 rounded-lg border border-slate-300 bg-slate-50 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      >
+                        ▲ Atas (-2)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_y: 0 }
+                        })}
+                        className="px-2.5 h-9 rounded-lg border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:bg-slate-50"
+                        title="Reset ke posisi standar"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          stamp_config: { ...stampConfig, offset_y: (stampConfig.offset_y || 0) + 2 }
+                        })}
+                        className="flex-1 h-9 rounded-lg border border-slate-300 bg-slate-50 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition"
+                      >
+                        Bawah (+2) ▼
+                      </button>
+                    </div>
                   </div>
                 </div>
 

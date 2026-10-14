@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Wrench,
   Check,
+  Coffee,
+  Ban,
 } from 'lucide-react';
 import { api } from './utils/api.js';
 import type { WorkshopProfile, Transaction, Item } from './types/bengkel.js';
@@ -21,6 +23,8 @@ import { FinancialReportsView } from './views/FinancialReportsView.js';
 import { SettingsView } from './views/SettingsView.js';
 import { ReceiptModal } from './components/ReceiptModal.js';
 import { WhatsAppReportModal } from './components/WhatsAppReportModal.js';
+import { CreatorCoffeeModal } from './components/CreatorCoffeeModal.js';
+import { EditReceiptModal } from './components/EditReceiptModal.js';
 import { PWAInstallButton } from './components/PWAInstallButton.js';
 import { OfflineIndicator } from './components/OfflineIndicator.js';
 import { requestNotificationPermission, sendLocalNotification } from './utils/notifications.js';
@@ -30,6 +34,11 @@ type Tab = 'dashboard' | 'inventory' | 'cashier' | 'reports' | 'settings';
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCoffeeModal, setShowCoffeeModal] = useState(false);
+  const [editingReceipt, setEditingReceipt] = useState<Transaction | null>(null);
+  const [cancelReceiptTarget, setCancelReceiptTarget] = useState<Transaction | null>(null);
+  const [cancelReasonInput, setCancelReasonInput] = useState('');
+  const [cancellingReceipt, setCancellingReceipt] = useState(false);
 
   // Workshop Profile
   const [profile, setProfile] = useState<WorkshopProfile>({
@@ -76,6 +85,22 @@ export default function App() {
       sendLocalNotification('Notifikasi BengkelPro Aktif', {
         body: 'Anda akan menerima pemberitahuan otomatis saat stok menipis dan transaksi selesai.',
       });
+    }
+  };
+
+  const handleConfirmCancelReceipt = async () => {
+    if (!cancelReceiptTarget || !cancelReasonInput.trim()) return;
+    try {
+      setCancellingReceipt(true);
+      await api.cancelTransaction(cancelReceiptTarget.id, cancelReasonInput.trim());
+      setCancelReceiptTarget(null);
+      setCancelReasonInput('');
+      setActiveReceipt(null);
+      alert('Nota transaksi berhasil dibatalkan dan stok telah disinkronkan kembali.');
+    } catch (err: any) {
+      alert(err.message || 'Gagal membatalkan nota transaksi');
+    } finally {
+      setCancellingReceipt(false);
     }
   };
 
@@ -178,7 +203,15 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowCoffeeModal(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 active:scale-95 transition shadow-xs"
+            title="Bagi Kopi Pembuat (Jamhur FB Kujang Luhur sekawan)"
+          >
+            <Coffee className="w-3.5 h-3.5 text-white" />
+            <span className="text-[11px] font-bold">Bagi Kopi</span>
+          </button>
           <PWAInstallButton />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -237,6 +270,14 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowCoffeeModal(true)}
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white px-3.5 py-1.5 text-xs font-bold hover:from-amber-600 hover:to-amber-700 transition shadow-xs active:scale-95"
+              title="Bagi Kopi Pembuat (Jamhur FB Kujang Luhur sekawan)"
+            >
+              <Coffee className="w-4 h-4 text-white" />
+              <span>Bagi Kopi</span>
+            </button>
             <PWAInstallButton />
             {!notificationsEnabled && (
               <button
@@ -327,7 +368,83 @@ export default function App() {
           transaction={activeReceipt}
           profile={profile}
           onClose={() => setActiveReceipt(null)}
+          onEdit={(trx) => {
+            setActiveReceipt(null);
+            setEditingReceipt(trx);
+          }}
+          onCancel={(trx) => {
+            setActiveReceipt(null);
+            setCancelReceiptTarget(trx);
+          }}
         />
+      )}
+
+      {/* EDIT RECEIPT MODAL */}
+      {editingReceipt && (
+        <EditReceiptModal
+          transaction={editingReceipt}
+          onClose={() => setEditingReceipt(null)}
+          onSuccess={(updated: Transaction) => {
+            setEditingReceipt(null);
+            setActiveReceipt(updated);
+          }}
+        />
+      )}
+
+      {/* CANCEL RECEIPT CONFIRMATION MODAL */}
+      {cancelReceiptTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+                <Ban className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900">Batalkan Nota Transaksi</h3>
+                <p className="text-[11px] text-slate-500 font-mono">{cancelReceiptTarget.invoice_no}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Membatalkan nota akan mengembalikan seluruh stok barang ke gudang dan menandai status nota menjadi dibatalkan.
+            </p>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Alasan Pembatalan <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={cancelReasonInput}
+                onChange={(e) => setCancelReasonInput(e.target.value)}
+                placeholder="Contoh: Pelanggan batal servis, salah input barang..."
+                className="w-full rounded-xl border border-slate-300 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-hidden"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setCancelReceiptTarget(null);
+                  setCancelReasonInput('');
+                }}
+                disabled={cancellingReceipt}
+                className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Kembali
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancelReceipt}
+                disabled={cancellingReceipt || !cancelReasonInput.trim()}
+                className="h-10 px-4 rounded-xl bg-rose-600 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {cancellingReceipt ? 'Memproses...' : 'Ya, Batalkan Nota'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* WHATSAPP REPORT MODAL */}
@@ -341,6 +458,12 @@ export default function App() {
           }}
         />
       )}
+
+      {/* CREATOR COFFEE MODAL (Bagi Kopi Pembuat) */}
+      <CreatorCoffeeModal
+        isOpen={showCoffeeModal}
+        onClose={() => setShowCoffeeModal(false)}
+      />
     </div>
   );
 }

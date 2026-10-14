@@ -270,7 +270,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             className="w-full h-11 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-hidden"
           />
         </div>
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex flex-wrap items-center gap-1.5 pb-1 sm:pb-0">
           {categories.map((cat) => (
             <button
               key={cat}
