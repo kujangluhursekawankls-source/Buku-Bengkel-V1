@@ -13,7 +13,7 @@ import type {
   DashboardStats,
   FinancialReportSummary
 } from '../src/types/bengkel.js';
-import initialSeedData from '../data/bengkel_database.json';
+import { initialSeedData } from './seedData.js';
 
 const isVercel = Boolean(process.env.VERCEL);
 const DATA_DIR = isVercel ? '/tmp/data' : path.resolve(process.cwd(), 'data');

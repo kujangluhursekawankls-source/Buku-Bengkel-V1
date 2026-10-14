@@ -8,8 +8,15 @@ import { db } from './server/db.js';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let appDir = process.cwd();
+try {
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    appDir = path.dirname(fileURLToPath(import.meta.url));
+  }
+} catch {
+  appDir = process.cwd();
+}
+const __dirname = appDir;
 
 const app = express();
 const httpServer = http.createServer(app);
