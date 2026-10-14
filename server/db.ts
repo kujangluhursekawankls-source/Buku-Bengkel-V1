@@ -112,6 +112,11 @@ class BengkelDatabase {
       const json = JSON.stringify(this.data, null, 2);
       fs.writeFileSync(tmpFile, json, 'utf-8');
       fs.renameSync(tmpFile, DB_FILE);
+
+      // Sinkronisasi otomatis ke Cloud Supabase jika sudah terhubung
+      if (this.supabase) {
+        this.syncAllToSupabase().catch(e => console.warn('Supabase auto-sync notice:', e.message));
+      }
     } catch (err) {
       console.error('Gagal menyimpan database ke disk:', err);
       throw new Error('Penyimpanan database gagal.');
@@ -141,6 +146,131 @@ class BengkelDatabase {
       url: url ? url.replace(/^(https?:\/\/[^/]+).*/, '$1') : '',
       hasKey: !!key,
     };
+  }
+
+  public async testSupabaseConnection(): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      return { success: false, message: 'Kredensial Supabase URL atau Key belum diisi atau tidak valid.' };
+    }
+    try {
+      const { error } = await this.supabase.from('items').select('id').limit(1);
+      if (error) {
+        return { success: false, message: `Koneksi Supabase gagal: ${error.message}. Pastikan skrip SQL sudah dijalankan di Supabase SQL Editor.` };
+      }
+      return { success: true, message: 'Koneksi ke Supabase Cloud aktif & tabel terdeteksi!' };
+    } catch (e: any) {
+      return { success: false, message: `Error koneksi: ${e.message}` };
+    }
+  }
+
+  public async syncAllToSupabase(): Promise<{ success: boolean; message: string; details?: any }> {
+    if (!this.supabase) {
+      return { success: false, message: 'Supabase belum terhubung.' };
+    }
+
+    try {
+      // 1. Profile
+      const prof = this.data.profile;
+      await this.supabase.from('workshop_profile').upsert({
+        id: 'default',
+        name: prof.name || '',
+        tagline: prof.tagline || '',
+        address: prof.address || '',
+        phone: prof.phone || '',
+        boss_whatsapp: prof.boss_whatsapp || '',
+        logo_url: prof.logo_url || '',
+        banner_url: prof.banner_url || '',
+        receipt_footer: prof.receipt_footer || 'Terima kasih atas kunjungan Anda!',
+        updated_at: prof.updated_at || new Date().toISOString(),
+      });
+
+      // 2. Items
+      if (this.data.items.length > 0) {
+        const itemRows = this.data.items.map(i => ({
+          id: i.id,
+          code: i.code,
+          name: i.name,
+          category: i.category,
+          unit: i.unit,
+          cost_price: i.cost_price,
+          sell_price: i.sell_price,
+          stock: i.stock,
+          min_stock: i.min_stock,
+          created_at: i.created_at,
+          updated_at: i.updated_at,
+        }));
+        await this.supabase.from('items').upsert(itemRows);
+      }
+
+      // 3. Services
+      if (this.data.services.length > 0) {
+        const srvRows = this.data.services.map(s => ({
+          id: s.id,
+          name: s.name,
+          price: s.price,
+          description: s.description || '',
+          created_at: (s as any).created_at || new Date().toISOString(),
+        }));
+        await this.supabase.from('services').upsert(srvRows);
+      }
+
+      // 4. Transactions
+      if (this.data.transactions.length > 0) {
+        const trxRows = this.data.transactions.map(t => ({
+          id: t.id,
+          invoice_no: t.invoice_no,
+          date: t.date,
+          customer_name: t.customer_name || '',
+          customer_phone: t.customer_phone || '',
+          vehicle_info: t.vehicle_info || '',
+          items: t.items,
+          services: t.services,
+          items_subtotal: t.items_subtotal,
+          services_subtotal: t.services_subtotal,
+          subtotal: t.subtotal,
+          discount: t.discount,
+          total_amount: t.total_amount,
+          payment_method: t.payment_method,
+          amount_received: t.amount_received,
+          change_amount: t.change_amount,
+          status: t.status,
+          cancellation_reason: t.cancellation_reason || null,
+          cancelled_at: t.cancelled_at || null,
+          notes: t.notes || '',
+          created_at: t.created_at,
+        }));
+        await this.supabase.from('transactions').upsert(trxRows);
+      }
+
+      // 5. Expenses
+      if (this.data.expenses.length > 0) {
+        const expRows = this.data.expenses.map(e => ({
+          id: e.id,
+          date: e.date,
+          category: e.category,
+          description: e.description,
+          amount: e.amount,
+          receipt_note: e.receipt_note || '',
+          created_at: e.created_at || new Date().toISOString(),
+        }));
+        await this.supabase.from('expenses').upsert(expRows);
+      }
+
+      this.logActivity('SYNC_SUPABASE', `Sinkronisasi menyeluruh ke Supabase cloud berhasil.`);
+      return {
+        success: true,
+        message: `Berhasil menyinkronkan ${this.data.items.length} barang, ${this.data.services.length} jasa, dan ${this.data.transactions.length} transaksi ke Supabase Cloud!`,
+        details: {
+          items: this.data.items.length,
+          services: this.data.services.length,
+          transactions: this.data.transactions.length,
+          expenses: this.data.expenses.length,
+        }
+      };
+    } catch (err: any) {
+      console.error('Gagal sync ke Supabase:', err);
+      return { success: false, message: `Gagal sinkronisasi: ${err.message}` };
+    }
   }
 
   private logActivity(action: string, details: string) {

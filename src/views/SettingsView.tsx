@@ -66,6 +66,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
   const [dbStatus, setDbStatus] = useState<{ connected: boolean; url: string; hasKey: boolean } | null>(null);
   const [sqlSchema, setSqlSchema] = useState<string>('');
   const [copiedSql, setCopiedSql] = useState(false);
+  const [testingDb, setTestingDb] = useState(false);
+  const [syncingDb, setSyncingDb] = useState(false);
+  const [dbFeedback, setDbFeedback] = useState<{ success: boolean; message: string } | null>(null);
 
   // Activity logs
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -108,6 +111,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
       console.error(err);
     } finally {
       setLoadingLogs(false);
+    }
+  };
+
+  const handleTestSupabase = async () => {
+    try {
+      setTestingDb(true);
+      setDbFeedback(null);
+      await api.updateProfile(formData);
+      const res = await api.testDatabaseConnection();
+      setDbFeedback(res);
+      await loadDatabaseStatus();
+    } catch (e: any) {
+      setDbFeedback({ success: false, message: e.message || 'Gagal mengetes koneksi ke Supabase' });
+    } finally {
+      setTestingDb(false);
+    }
+  };
+
+  const handleSyncSupabase = async () => {
+    try {
+      setSyncingDb(true);
+      setDbFeedback(null);
+      await api.updateProfile(formData);
+      const res = await api.syncDatabaseToCloud();
+      setDbFeedback(res);
+      await loadDatabaseStatus();
+    } catch (e: any) {
+      setDbFeedback({ success: false, message: e.message || 'Gagal sinkronisasi data ke Supabase' });
+    } finally {
+      setSyncingDb(false);
     }
   };
 
@@ -939,77 +972,139 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ profile, onProfileUp
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Database className="w-4 h-4 text-teal-600" />
-                <span>Penyimpanan Database Online</span>
+                <span>Penyimpanan Database Cloud Utama (Supabase Online)</span>
               </h3>
               <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-bold text-emerald-800">Server DB Aktif</span>
+                <span className={`flex h-2.5 w-2.5 rounded-full ${dbStatus?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+                <span className={`text-xs font-bold ${dbStatus?.connected ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  {dbStatus?.connected ? 'Cloud Supabase Aktif' : 'Belum Terhubung Cloud'}
+                </span>
               </div>
             </div>
 
-            <div className="rounded-xl bg-teal-50/70 border border-teal-200 p-4 text-xs text-teal-900 space-y-1">
-              <p className="font-bold flex items-center gap-1.5">
+            {/* Panduan Langkah Mudah */}
+            <div className="rounded-xl bg-teal-50/70 border border-teal-200 p-4 text-xs text-teal-950 space-y-2">
+              <p className="font-bold text-sm flex items-center gap-2 text-teal-900">
                 <ShieldCheck className="w-4 h-4 text-teal-700" />
-                Penyimpanan Online Tanpa Perlu Login
+                Panduan Menjadikan Database Online Permanen (Gratis):
               </p>
-              <p className="text-[11px] text-teal-800 leading-relaxed">
-                Seluruh data transaksi, stok suku cadang, dan kasir tersimpan permanen di database server dan tetap aman saat browser ditutup atau dibuka dari perangkat HP lain.
-              </p>
+              <ol className="list-decimal list-inside space-y-1.5 text-xs text-teal-900 leading-relaxed font-medium pl-1">
+                <li>
+                  Buka situs <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="underline font-bold text-teal-800 inline-flex items-center gap-0.5">supabase.com <ExternalLink className="w-3 h-3" /></a> dan Masuk / Daftar gratis menggunakan Akun Google Anda.
+                </li>
+                <li>
+                  Klik tombol <strong>"New Project"</strong>, beri nama project Anda (contoh: <em>Bengkel Sutikno</em>), dan buat kata sandi database.
+                </li>
+                <li>
+                  Di menu sebelah kiri Supabase, klik <strong>SQL Editor</strong>, lalu tekan tombol <strong>"Salin SQL"</strong> di bagian bawah halaman ini, tempelkan (Paste) ke editor Supabase dan klik tombol <strong>Run</strong>.
+                </li>
+                <li>
+                  Buka menu <strong>Project Settings (ikon Gerigi) &gt; Data API</strong>, salin <strong>Project URL</strong> dan <strong>anon public API Key</strong>, lalu tempelkan di form di bawah ini.
+                </li>
+                <li>
+                  Klik tombol <strong>"Simpan &amp; Sinkronkan Data"</strong>. Selesai! Seluruh data otomatis aman di cloud Supabase online.
+                </li>
+              </ol>
             </div>
 
-            <div className="space-y-3 text-xs pt-2">
-              <h4 className="font-bold text-slate-800">Koneksi Supabase (Opsional):</h4>
+            {/* Status Feedback Banner */}
+            {dbFeedback && (
+              <div
+                className={`p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 border ${
+                  dbFeedback.success
+                    ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                    : 'bg-rose-50 text-rose-900 border-rose-200'
+                }`}
+              >
+                {dbFeedback.success ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <p className="font-bold">{dbFeedback.success ? 'Berhasil!' : 'Perhatian:'}</p>
+                  <p className="text-[11px] leading-relaxed mt-0.5">{dbFeedback.message}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Input Form Supabase Credentials */}
+            <div className="space-y-3 text-xs pt-1">
+              <h4 className="font-bold text-slate-800">Form Kredensial Supabase Anda:</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Supabase URL</label>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Supabase Project URL *
+                  </label>
                   <input
                     type="text"
                     value={formData.supabase_url || ''}
                     onChange={e => setFormData({ ...formData, supabase_url: e.target.value })}
-                    placeholder="https://xyzcompany.supabase.co"
-                    className="w-full h-11 rounded-xl border border-slate-300 px-3 font-mono text-xs"
+                    placeholder="https://abcdefghijkl.supabase.co"
+                    className="w-full h-11 rounded-xl border border-slate-300 px-3 font-mono text-xs focus:border-teal-500 focus:outline-hidden"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Ditemukan di Supabase: Project Settings &gt; Data API &gt; Project URL</p>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Supabase Key</label>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Supabase Anon Public Key *
+                  </label>
                   <input
                     type="password"
                     value={formData.supabase_anon_key || ''}
                     onChange={e => setFormData({ ...formData, supabase_anon_key: e.target.value })}
-                    placeholder="eyJhbGciOi..."
-                    className="w-full h-11 rounded-xl border border-slate-300 px-3 font-mono text-xs"
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    className="w-full h-11 rounded-xl border border-slate-300 px-3 font-mono text-xs focus:border-teal-500 focus:outline-hidden"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Ditemukan di Supabase: Project Settings &gt; Data API &gt; Project API keys (anon)</p>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
                 <button
                   type="button"
-                  onClick={() => handleSaveProfile()}
-                  disabled={saving}
-                  className="h-11 rounded-xl bg-teal-600 px-5 font-bold text-white hover:bg-teal-700"
+                  onClick={handleTestSupabase}
+                  disabled={testingDb || syncingDb}
+                  className="h-11 rounded-xl border border-teal-600 bg-teal-50 px-4 font-bold text-teal-800 hover:bg-teal-100 active:scale-95 transition inline-flex items-center gap-2"
                 >
-                  Simpan Kredensial Supabase
+                  <RefreshCw className={`w-3.5 h-3.5 ${testingDb ? 'animate-spin' : ''}`} />
+                  <span>{testingDb ? 'Menguji Koneksi...' : 'Uji Koneksi Supabase'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSyncSupabase}
+                  disabled={testingDb || syncingDb}
+                  className="h-11 rounded-xl bg-teal-700 px-5 font-bold text-white hover:bg-teal-800 active:scale-95 transition inline-flex items-center gap-2 shadow-sm"
+                >
+                  <UploadCloud className={`w-4 h-4 ${syncingDb ? 'animate-bounce' : ''}`} />
+                  <span>{syncingDb ? 'Menyinkronkan...' : 'Simpan & Sinkronkan Semua Data Sekarang'}</span>
                 </button>
               </div>
             </div>
 
+            {/* SQL Migration Script Box */}
             <div className="pt-3 border-t border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-xs text-slate-800">Skrip SQL Migrasi:</h4>
+                <div>
+                  <h4 className="font-bold text-xs text-slate-800">Skrip SQL Migrasi (Tabel Database):</h4>
+                  <p className="text-[11px] text-slate-500">Salin skrip ini dan jalankan 1x di menu SQL Editor di akun Supabase Anda.</p>
+                </div>
                 <button
                   onClick={handleCopySql}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-teal-600 bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 hover:bg-teal-100 active:scale-95 transition"
                 >
                   {copiedSql ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSql ? 'Tersalin' : 'Salin SQL'}</span>
+                  <span>{copiedSql ? 'Tersalin!' : 'Salin SQL'}</span>
                 </button>
               </div>
               <textarea
                 readOnly
-                rows={6}
+                rows={7}
                 value={sqlSchema}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-[10px] text-slate-700"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-[10px] text-slate-700 leading-relaxed"
               />
             </div>
           </div>

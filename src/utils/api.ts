@@ -277,6 +277,16 @@ export const api = {
     return handleResponse(res);
   },
 
+  testDatabaseConnection: async (): Promise<{ success: boolean; message: string }> => {
+    const res = await fetch('/api/database/test', { method: 'POST' });
+    return handleResponse(res);
+  },
+
+  syncDatabaseToCloud: async (): Promise<{ success: boolean; message: string; details?: any }> => {
+    const res = await fetch('/api/database/sync', { method: 'POST' });
+    return handleResponse(res);
+  },
+
   getSqlSchema: async (): Promise<{ sql: string }> => {
     const res = await fetch('/api/database/schema-sql');
     return handleResponse(res);

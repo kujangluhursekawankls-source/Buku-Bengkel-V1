@@ -362,6 +362,24 @@ app.get('/api/database/status', (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/database/test', async (req: Request, res: Response) => {
+  try {
+    const result = await db.testSupabaseConnection();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/database/sync', async (req: Request, res: Response) => {
+  try {
+    const result = await db.syncAllToSupabase();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.get('/api/database/schema-sql', (req: Request, res: Response) => {
   try {
     res.json({ sql: db.getSupabaseSqlSchema() });
